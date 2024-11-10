@@ -1,8 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:myapp/utils/weather_service.dart';
 import 'package:myapp/widgets/bottom_nav_button.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  final WeatherService _weatherService = WeatherService();
+  double? _currentTemperature;
+  String? _description = '';
+  String? _iconUrl = '';
+  String city = 'Bogota';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCurrentWeather();
+  }
+
+  Future<void> _fetchCurrentWeather() async {
+    final weatherData = await _weatherService.getCurrentWeather(city);
+    setState(() {
+      if (weatherData != null) {
+        _currentTemperature = weatherData['temperature'];
+        _description = weatherData['description'];
+        _iconUrl = weatherData['iconUrl'];
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,34 +58,58 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const SizedBox(height: 50),
-                // Descripción del clima
-                const Text(
-                  'Mostly Cloudy',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 24,
-                    fontWeight: FontWeight.w300,
+                // Información del clima
+                if (_currentTemperature != null && _description != null)
+                  Column(
+                    children: [
+                      Text(
+                        _description!,
+                        style: const TextStyle(
+                          color: Color.fromARGB(179, 255, 255, 255),
+                          fontSize: 24,
+                          fontWeight: FontWeight.w300,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (_iconUrl != null)
+                        Image.network(
+                          _iconUrl!,
+                          width: 80,
+                          height: 80,
+                        ),
+                      const SizedBox(height: 10),
+                      Text(
+                        '${_currentTemperature!.toStringAsFixed(1)}°C',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 80,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        city,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                    ],
+                  )
+                else
+                  const Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                // Temperatura actual
-                const Text(
-                  '14°C',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 80,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                const Spacer(),
+                // Botones de navegación
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 20),
                   margin: const EdgeInsets.only(bottom: 20),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15), // Fondo transparente
-                    borderRadius: BorderRadius.circular(40), // Forma de óvalo
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(40),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.3),

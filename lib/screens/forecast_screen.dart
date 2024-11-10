@@ -1,16 +1,57 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import '../widgets/weekly_forecast_card.dart'; // Importamos el widget reutilizable
+import 'package:http/http.dart' as http;
+import '../widgets/weekly_forecast_card.dart';
 
-class forecast_screen extends StatelessWidget {
-  const forecast_screen({Key? key}) : super(key: key);
+class forecast_screen extends StatefulWidget {
+  const forecast_screen({super.key});
+
+  @override
+  _ForecastScreenState createState() => _ForecastScreenState();
+}
+
+class _ForecastScreenState extends State<forecast_screen> {
+  List<Map<String, dynamic>> forecastData = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchForecastData();
+  }
+
+  Future<void> fetchForecastData() async {
+    const String apiKey = '5fd742bd96bf4ba188e192440240911';
+    const String apiUrl =
+        'http://api.weatherapi.com/v1/forecast.json?key=$apiKey&q=Bogotá&days=7&aqi=no&alerts=no';
+
+    final response = await http.get(Uri.parse(apiUrl));
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final List forecastDays = data['forecast']['forecastday'];
+
+      setState(() {
+        forecastData = forecastDays.map((day) {
+          return {
+            'day': day['date'] ?? '',
+            'tempMax': '${day['day']['maxtemp_c'] ?? ''}°C',
+            'tempMin': '${day['day']['mintemp_c'] ?? ''}°C',
+            'iconUrl': 'https:${day['day']['condition']['icon'] ?? ''}',
+          };
+        }).toList();
+      });
+    } else {
+      // Manejo de errores
+      print('Error al obtener los datos: ${response.statusCode}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black87,
       appBar: AppBar(
-        title: const Text('Pronóstico Semanal',
-            style: TextStyle(color: Colors.white)),
+        title: const Text('Pronóstico Semanal', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -22,10 +63,9 @@ class forecast_screen extends StatelessWidget {
       ),
       body: Stack(
         children: [
-          
           Positioned.fill(
             child: Image.network(
-              'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnNnMGR4NmV6bGU4YWVnbXFiYWo4OTJ5dmhwZjhha3E0N3d2aDNweiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LVCdHNPTIY2be/giphy.webp', // Fondo espacial
+              'https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnNnMGR4NmV6bGU4YWVnbXFiYWo4OTJ5dmhwZjhha3E0N3d2aDNweiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/LVCdHNPTIY2be/giphy.webp',
               fit: BoxFit.cover,
             ),
           ),
@@ -36,57 +76,16 @@ class forecast_screen extends StatelessWidget {
           ),
           PageView(
             scrollDirection: Axis.horizontal,
-            children: const [
-              WeeklyForecastCard(
-                day: 'Lunes',
-                iconUrl:
-                    'https://img.icons8.com/?size=100&id=R1kPtXvDMnWj&format=png&color=000000',
-                tempMax: '20°C',
-                tempMin: '10°C',
-              ),
-              WeeklyForecastCard(
-                day: 'Martes',
-                iconUrl:
-                    'https://img.icons8.com/?size=100&id=PwHEPRMlRd4a&format=png&color=000000',
-                tempMax: '18°C',
-                tempMin: '8°C',
-              ),
-              WeeklyForecastCard(
-                day: 'Miercoles',
-                iconUrl:
-                    'https://img.icons8.com/?size=100&id=c0Otgmp74zQX&format=png&color=000000',
-                tempMax: '18°C',
-                tempMin: '8°C',
-              ),
-              WeeklyForecastCard(
-                day: 'Jueves',
-                iconUrl:
-                    'https://img.icons8.com/?size=100&id=3RZmbgKAmbsY&format=png&color=000000',
-                tempMax: '18°C',
-                tempMin: '8°C',
-              ),
-              WeeklyForecastCard(
-                day: 'Viernes',
-                iconUrl:
-                    'https://img.icons8.com/?size=100&id=PwHEPRMlRd4a&format=png&color=000000',
-                tempMax: '18°C',
-                tempMin: '8°C',
-              ),
-              WeeklyForecastCard(
-                day: 'Sabado',
-                iconUrl:
-                    'https://img.icons8.com/?size=100&id=PwHEPRMlRd4a&format=png&color=000000',
-                tempMax: '18°C',
-                tempMin: '8°C',
-              ),
-              WeeklyForecastCard(
-                day: 'Domingo',
-                iconUrl:
-                    'https://img.icons8.com/?size=100&id=cyZConbteZk9&format=png&color=000000',
-                tempMax: '18°C',
-                tempMin: '8°C',
-              ),
-            ],
+            children: forecastData.isNotEmpty
+                ? forecastData.map((dayData) {
+                    return WeeklyForecastCard(
+                      day: dayData['day'] ?? '',
+                      iconUrl: dayData['iconUrl'] ?? '',
+                      tempMax: dayData['tempMax'] ?? '',
+                      tempMin: dayData['tempMin'] ?? '',
+                    );
+                  }).toList()
+                : [const Center(child: CircularProgressIndicator())],
           ),
         ],
       ),

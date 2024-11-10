@@ -1,39 +1,49 @@
 import 'package:flutter/material.dart';
 
 class AlertDetails extends StatelessWidget {
-  const AlertDetails({Key? key}) : super(key: key);
+  final Map<String, String> alert;
+
+  const AlertDetails({super.key, required this.alert});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.black54.withOpacity(0.7),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Inicio: Hoy, 3:00 PM',
-            style: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-          SizedBox(height: 10),
-          Text(
-            'Duración estimada: 2 horas',
-            style: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-          SizedBox(height: 10),
-          Text(
-            'Intensidad: Alta - Se esperan vientos fuertes y granizo.',
-            style: TextStyle(color: Colors.white, fontSize: 18),
-          ),
-          SizedBox(height: 10),
-          Text(
-            'Consejos: Permanezca bajo techo, evite áreas al aire libre.',
-            style: TextStyle(color: Colors.white70, fontSize: 16),
-          ),
-        ],
+    return Card(
+      color: Colors.redAccent.withOpacity(0.8),
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              alert['headline']!,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Severidad: ${alert['severity']}",
+              style: const TextStyle(color: Colors.white70),
+            ),
+            Text(
+              "Áreas afectadas: ${alert['areas']}",
+              style: const TextStyle(color: Colors.white70),
+            ),
+            Text(
+              "Evento: ${alert['event']}",
+              style: const TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Descripción: ${alert['desc']}",
+              style: const TextStyle(color: Colors.white),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              "Instrucciones: ${alert['instruction']}",
+              style: const TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
       ),
     );
   }
